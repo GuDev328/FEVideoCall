@@ -32,6 +32,7 @@ export const Basics = () => {
     const [remoteUsers, setRemoteUsers] = useState<IAgoraRTCRemoteUser[]>([]);
     usePublish([localMicrophoneTrack, localCameraTrack]);
 
+    //Join vào room khi calling thay đổi bằng true
     useJoin(
         {
             appid: "<Your APP ID>",
@@ -42,6 +43,7 @@ export const Basics = () => {
         calling
     );
 
+    //Rời room và clear states
     const leaveRoom = async () => {
         try {
             await client.leave();
@@ -57,6 +59,7 @@ export const Basics = () => {
         }
     };
 
+    //Lấy token để vào room
     const handleGetMeetingToken = async (channelProps?: string) => {
         try {
             const response = await axiosIns.postAuth(
@@ -75,12 +78,14 @@ export const Basics = () => {
         if (accessToken) handleGetMeetingToken();
     }, []);
 
+    //Lấy về danh sách remote users đang có trong room
     const remoteUsersList = useRemoteUsers();
 
     useEffect(() => {
         setRemoteUsers(remoteUsersList);
     }, [remoteUsersList]);
 
+    //Ban đầu chỉ có ID có user, lấy tên user từ API để hiển thị
     const handleGetName = async () => {
         const response = await Promise.all(
             remoteUsers.map((remoteUser) => {
@@ -100,6 +105,7 @@ export const Basics = () => {
         handleGetName();
     }, [remoteUsers]);
 
+    //JSX hiển thị chính người dùng
     const localUserJSX = (
         <div className="user">
             <LocalUser
@@ -114,6 +120,7 @@ export const Basics = () => {
         </div>
     );
 
+    //Hàm xử lý ghim user
     const handlePin = (uid: string | number) => {
         const user = remoteUsers.find((user) => user.uid === uid);
         if (user) {
@@ -127,6 +134,7 @@ export const Basics = () => {
         }
     };
 
+    //JSX hiển thị remote users
     const remoteUsersJSX = remoteUsers.map((user) => {
         if (pinUserId !== user.uid)
             return (
@@ -153,6 +161,7 @@ export const Basics = () => {
             );
     });
 
+    //Nếu chưa đăng nhập thì bắt đăng nhập
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) return <Login />;
 
@@ -161,6 +170,7 @@ export const Basics = () => {
             <div className="room">
                 {isConnected ? (
                     <div className="user-list">
+                        {/* User đang được ghim */}
                         {userPin && (
                             <div
                                 className="user"
@@ -190,11 +200,14 @@ export const Basics = () => {
                                 </RemoteUser>
                             </div>
                         )}
+                        {/* User chính mình */}
                         {localUserJSX}
 
+                        {/* User khác */}
                         {remoteUsersJSX}
                     </div>
                 ) : (
+                    // Control Join và chuyển các room
                     <div className="join-room">
                         <input
                             disabled
@@ -237,6 +250,8 @@ export const Basics = () => {
                     </div>
                 )}
             </div>
+
+            {/* Control của room khi đang gọi */}
             {isConnected && (
                 <div className="control">
                     <div className="left-control">
